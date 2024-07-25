@@ -6,11 +6,19 @@ body, html {
 
 .content {
     margin: 0 auto;
-    width: 400px;
+    width: 80%; /* You can adjust this value as needed */
+    max-width: 800px; /* Set a max width to avoid the content being too wide */
+    text-align: center; /* Center the content inside the container */
 }
 
 table, td, th {
     border: 1px solid #aaa;
+}
+
+.table-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
 }
 
 table {
