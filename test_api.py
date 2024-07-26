@@ -68,12 +68,12 @@ goalies = goalies.rename(columns=rename_columns)
 #       dtype='object')
 
 
-print("Fowards")
-print(forwards)
-print("\nDefensemen")
-print(defensemen)
-print("\nGoalies")
-print(goalies)
+# print("Fowards")
+# print(forwards)
+# print("\nDefensemen")
+# print(defensemen)
+# print("\nGoalies")
+# print(goalies)
 
 # for forward in forwards:
 #     print(forward['firstName']['default']+ " " + forward['lastName']['default'])
@@ -85,6 +85,39 @@ print(goalies)
 #     print(goalie['firstName']['default'] + " " + goalie['lastName']['default'])
 
 
+schedule_site = "https://api-web.nhle.com/v1/club-schedule-season/TOR/now"
+schedule_response = requests.get(schedule_site)
+
+convert = schedule_response.json()['games']
+schedule = pd.json_normalize(convert)
+#print(schedule.columns.values)
+
+schedule = schedule[['id','homeTeam.abbrev','awayTeam.abbrev','gameDate','venueUTCOffset', 'venue.default']]
+schedule = schedule.rename(columns={"homeTeam.abbrev":"home","awayTeam.abbrev":"away","venue.default":"venue", 'gameDate':'date', 'venueUTCOffset':'time'})
+#print(schedule)
+#schedule.to_csv("schedule.csv", index=True)
+
+
+
+
+player_link = "https://api-web.nhle.com/v1/player/8480012/landing"
+player_response = requests.get(player_link)
+player = pd.json_normalize(player_response.json()['seasonTotals'])
+
+
+# ['assists' 'gameTypeId' 'gamesPlayed' 'goals' 'leagueAbbrev' 'pim'
+#  'plusMinus' 'points' 'season' 'sequence' 'teamName.default' 'avgToi'
+#  'faceoffWinningPctg' 'gameWinningGoals' 'otGoals' 'powerPlayGoals'
+#  'powerPlayPoints' 'shootingPctg' 'shorthandedGoals' 'shorthandedPoints'
+#  'shots' 'teamName.fr']
+player = player[player['gameTypeId'] == 2]
+player = player[['leagueAbbrev','teamName.default','season', 'gamesPlayed','goals', 'assists','points','plusMinus']]
+
+player = player[player['gamesPlayed'] > 10]
+
+
+print(player.columns.values)
+print(player)
 
     
 

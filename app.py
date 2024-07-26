@@ -80,7 +80,39 @@ def roster(id):
     
     return render_template('roster.html', tables=list(players.values.tolist()), titles=players.columns.values, zip=zip)
     #return render_template('roster.html', forwards=forwards, defensemen=defensemen, goalies=goalies, team=team)
-    
+
+@app.route('/schedule/<int:id>', methods=['GET'])
+def schedule(id):
+    print(id)
+    team = Team.query.get_or_404(id)
+    schedule_link = "https://api-web.nhle.com/v1/club-schedule-season/"+team.tricode+"/now"
+    schedule = pd.json_normalize(requests.get(schedule_link).json()['games'])
+
+    schedule = schedule[['id','homeTeam.abbrev','awayTeam.abbrev','gameDate','venueUTCOffset', 'venue.default']]
+    schedule = schedule.rename(columns={"homeTeam.abbrev":"home","awayTeam.abbrev":"away","venue.default":"venue", 'gameDate':'date', 'venueUTCOffset':'time'})
+    return render_template('schedule.html', tables=list(schedule.values.tolist()), titles=schedule.columns.values, zip=zip)
+
+@app.route('/player/<int:id>', methods=['GET'])
+def player(id):
+    print(id)
+
+    player_link = "https://api-web.nhle.com/v1/player/"+str(id)+"/landing"
+    player_response = requests.get(player_link)
+    player = pd.json_normalize(player_response.json()['seasonTotals'])
+
+
+    # ['assists' 'gameTypeId' 'gamesPlayed' 'goals' 'leagueAbbrev' 'pim'
+    #  'plusMinus' 'points' 'season' 'sequence' 'teamName.default' 'avgToi'
+    #  'faceoffWinningPctg' 'gameWinningGoals' 'otGoals' 'powerPlayGoals'
+    #  'powerPlayPoints' 'shootingPctg' 'shorthandedGoals' 'shorthandedPoints'
+    #  'shots' 'teamName.fr']
+    player = player[player['gameTypeId'] == 2]
+    player = player[['leagueAbbrev','teamName.default','season', 'gamesPlayed','goals', 'assists','points','plusMinus']]
+
+    player = player[player['gamesPlayed'] > 10]
+    return render_template('player.html', tables=list(player.values.tolist()), titles=player.columns.values, zip=zip)
+
+
 
 @app.route('/delete/<int:id>')
 def delete(id):
@@ -107,6 +139,7 @@ def update(id):
         
     else:
         return render_template('update.html', task = team)
+    
 
 if __name__ == "__main__":
     with app.app_context():

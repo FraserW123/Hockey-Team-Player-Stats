@@ -26,9 +26,11 @@
                     <td>{{ team.name }}</td>
                     <td>{{ team.tricode }}</td>
                     <td>
-                        <a href="/delete/{{team.franchiseId}}">Delete</a>
-                        <br>
+                        <!-- <a href="/delete/{{team.franchiseId}}">Delete</a> -->
+                        <!-- <br> -->
                         <a href="/roster/{{team.id}}">Roster</a>
+                        <br>
+                        <a href="/schedule/{{team.id}}">Schedule</a>
                     </td>
                 </tr>
             {% endfor %}
