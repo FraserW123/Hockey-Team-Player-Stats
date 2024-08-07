@@ -1,7 +1,7 @@
 body, html {
     margin: 0;
     font-family: sans-serif;
-    /* background-color: lightblue; */
+    background-color: lightblue;
 }
 
 .content {
@@ -24,6 +24,7 @@ table, td, th {
 table {
     border-collapse: collapse;
     width: 100%;
+    background-color: white;
 }
 
 th {

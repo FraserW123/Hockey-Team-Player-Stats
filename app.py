@@ -98,7 +98,15 @@ def player(id):
 
     player_link = "https://api-web.nhle.com/v1/player/"+str(id)+"/landing"
     player_response = requests.get(player_link)
-    player = pd.json_normalize(player_response.json()['seasonTotals'])
+
+    player_json = player_response.json()
+
+    player_totals = pd.json_normalize(player_json['seasonTotals'])
+    player_about = player_json['position']
+    player_birthdate = player_json['birthDate']
+    print(player_about)
+
+    print(player_json.keys())
 
 
     # ['assists' 'gameTypeId' 'gamesPlayed' 'goals' 'leagueAbbrev' 'pim'
@@ -106,11 +114,32 @@ def player(id):
     #  'faceoffWinningPctg' 'gameWinningGoals' 'otGoals' 'powerPlayGoals'
     #  'powerPlayPoints' 'shootingPctg' 'shorthandedGoals' 'shorthandedPoints'
     #  'shots' 'teamName.fr']
-    player = player[player['gameTypeId'] == 2]
-    player = player[['leagueAbbrev','teamName.default','season', 'gamesPlayed','goals', 'assists','points','plusMinus']]
 
-    player = player[player['gamesPlayed'] > 10]
-    return render_template('player.html', tables=list(player.values.tolist()), titles=player.columns.values, zip=zip)
+    
+    player_totals = player_totals[player_totals['gameTypeId'] == 2]
+    player_totals = player_totals[player_totals['gamesPlayed'] > 10]
+    #player = player.drop(columns=['goals','assists', 'points', 'plusMinus'])
+    #print("f" +str(player['goals'].max()) + "hello")
+    player_totals = player_totals.fillna(0)
+    if player_about == 'G':
+        print("less than 2")
+        player_totals = player_totals[['leagueAbbrev','teamName.default','season', 'gamesPlayed', "goalsAgainstAvg", 'wins', 'losses', 'shutouts']]
+        player_totals['goalsAgainstAvg'] = player_totals['goalsAgainstAvg'].round(2)
+        
+    else:
+        print(player_totals['goals'].max())
+        player_totals = player_totals[['leagueAbbrev','teamName.default','season', 'gamesPlayed','goals', 'assists', 'points', 'plusMinus']]
+    player_totals = player_totals.rename(columns={"leagueAbbrev":"league","teamName.default":"team","season":"season","gamesPlayed":"games","plusMinus":"+/-"})
+    
+    # print("f" +str(player['goals'].max()) + "hello")
+
+
+
+    # player = player[['leagueAbbrev','teamName.default','season', 'gamesPlayed','goals', 'assists','points','plusMinus']]
+    # if (player[player['shots'] <= 2]).any():
+    #     player = player.drop(columns=['goals','assists', 'points', 'plusMinus'])
+        
+    return render_template('player.html', tables=list(player_totals.values.tolist()), titles=player_totals.columns.values, zip=zip)
 
 
 
