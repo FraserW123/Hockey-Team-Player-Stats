@@ -6,6 +6,22 @@
 {% block body %}
 <div class = 'content'>
     <h1 style = "text-align: center;">Player Stats</h1>
+    <table>
+        <tr>
+            <th>Picture</th>
+            <th>Name</th>
+            <th>DOB</th>
+            <th>Jersey Number</th>
+        </tr>
+        <tr>
+            <td><img src="{{image}}" alt="Player Image" style="display: block; margin-left: auto; margin-right: auto; width: 50%;"></td>
+            <td>{{name}}</td>
+            <td>{{dob}}</td>
+            <td>{{number}}</td>
+
+        </tr>
+    </table>
+    <br>
     <table style="margin: 0px auto;">
         <tr>
             {% for title in titles %}

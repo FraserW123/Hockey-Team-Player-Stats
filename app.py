@@ -88,8 +88,8 @@ def schedule(id):
     schedule_link = "https://api-web.nhle.com/v1/club-schedule-season/"+team.tricode+"/now"
     schedule = pd.json_normalize(requests.get(schedule_link).json()['games'])
 
-    schedule = schedule[['id','homeTeam.abbrev','awayTeam.abbrev','gameDate','venueUTCOffset', 'venue.default']]
-    schedule = schedule.rename(columns={"homeTeam.abbrev":"home","awayTeam.abbrev":"away","venue.default":"venue", 'gameDate':'date', 'venueUTCOffset':'time'})
+    schedule = schedule[['homeTeam.abbrev','awayTeam.abbrev','gameDate','venueUTCOffset', 'venue.default']]
+    schedule = schedule.rename(columns={"homeTeam.abbrev":"home","awayTeam.abbrev":"away","venue.default":"venue", 'gameDate':'date', 'venueUTCOffset':'time (PST)'})
     return render_template('schedule.html', tables=list(schedule.values.tolist()), titles=schedule.columns.values, zip=zip)
 
 @app.route('/player/<int:id>', methods=['GET'])
@@ -104,6 +104,9 @@ def player(id):
     player_totals = pd.json_normalize(player_json['seasonTotals'])
     player_about = player_json['position']
     player_birthdate = player_json['birthDate']
+    player_image = player_json['headshot']
+    player_name = player_json['firstName']['default'] + " " + player_json['lastName']['default']
+    player_number = player_json['sweaterNumber']
     print(player_about)
 
     print(player_json.keys())
@@ -118,8 +121,8 @@ def player(id):
     
     player_totals = player_totals[player_totals['gameTypeId'] == 2]
     player_totals = player_totals[player_totals['gamesPlayed'] > 10]
-    #player = player.drop(columns=['goals','assists', 'points', 'plusMinus'])
-    #print("f" +str(player['goals'].max()) + "hello")
+
+
     player_totals = player_totals.fillna(0)
     if player_about == 'G':
         print("less than 2")
@@ -130,17 +133,59 @@ def player(id):
         print(player_totals['goals'].max())
         player_totals = player_totals[['leagueAbbrev','teamName.default','season', 'gamesPlayed','goals', 'assists', 'points', 'plusMinus']]
     player_totals = player_totals.rename(columns={"leagueAbbrev":"league","teamName.default":"team","season":"season","gamesPlayed":"games","plusMinus":"+/-"})
+
+    return render_template('player.html', tables=list(player_totals.values.tolist()), titles=player_totals.columns.values, dob=player_birthdate, image=player_image, 
+                           name=player_name, number=player_number, zip=zip)
+
+@app.route('/standings', methods=['GET'])
+def standings():
+    standings_link = "https://api-web.nhle.com/v1/standings/now"
+    standings = pd.json_normalize(requests.get(standings_link).json()['standings'])
+
+    ['clinchIndicator' 'conferenceAbbrev' 'conferenceHomeSequence'
+    'conferenceL10Sequence' 'conferenceName' 'conferenceRoadSequence'
+    'conferenceSequence' 'date' 'divisionAbbrev' 'divisionHomeSequence'
+    'divisionL10Sequence' 'divisionName' 'divisionRoadSequence'
+    'divisionSequence' 'gameTypeId' 'gamesPlayed' 'goalDifferential'
+    'goalDifferentialPctg' 'goalAgainst' 'goalFor' 'goalsForPctg'
+    'homeGamesPlayed' 'homeGoalDifferential' 'homeGoalsAgainst'
+    'homeGoalsFor' 'homeLosses' 'homeOtLosses' 'homePoints'
+    'homeRegulationPlusOtWins' 'homeRegulationWins' 'homeTies' 'homeWins'
+    'l10GamesPlayed' 'l10GoalDifferential' 'l10GoalsAgainst' 'l10GoalsFor'
+    'l10Losses' 'l10OtLosses' 'l10Points' 'l10RegulationPlusOtWins'
+    'l10RegulationWins' 'l10Ties' 'l10Wins' 'leagueHomeSequence'
+    'leagueL10Sequence' 'leagueRoadSequence' 'leagueSequence' 'losses'
+    'otLosses' 'pointPctg' 'points' 'regulationPlusOtWinPctg'
+    'regulationPlusOtWins' 'regulationWinPctg' 'regulationWins'
+    'roadGamesPlayed' 'roadGoalDifferential' 'roadGoalsAgainst'
+    'roadGoalsFor' 'roadLosses' 'roadOtLosses' 'roadPoints'
+    'roadRegulationPlusOtWins' 'roadRegulationWins' 'roadTies' 'roadWins'
+    'seasonId' 'shootoutLosses' 'shootoutWins' 'streakCode' 'streakCount'
+    'teamLogo' 'ties' 'waiversSequence' 'wildcardSequence' 'winPctg' 'wins'
+    'placeName.default' 'teamName.default' 'teamName.fr'
+    'teamCommonName.default' 'teamAbbrev.default' 'placeName.fr'
+    'teamCommonName.fr']
+
+    standings = standings[['divisionAbbrev', 'teamAbbrev.default', 'gamesPlayed', 'wins',
+                           'losses', 'otLosses', 'points', 'pointPctg']]
     
-    # print("f" +str(player['goals'].max()) + "hello")
+    standings = standings.rename(columns={"divisionAbbrev":"division","teamAbbrev.default":"team",
+                                          "gamesPlayed":"games","otLosses":"OTL", "pointPctg":"PCT"})
+    
+    standings = standings.round({'PCT': 3})
 
+    metro_standings = standings[standings['division'] == 'M']
+    atlantic_standings = standings[standings['division'] == 'A']
+    central_standings = standings[standings['division'] == 'C']
+    pacific_standings = standings[standings['division'] == 'P']
 
+    metro_standings=metro_standings.drop(columns=['division'])
+    atlantic_standings=atlantic_standings.drop(columns=['division'])
+    central_standings=central_standings.drop(columns=['division'])
+    pacific_standings=pacific_standings.drop(columns=['division'])
 
-    # player = player[['leagueAbbrev','teamName.default','season', 'gamesPlayed','goals', 'assists','points','plusMinus']]
-    # if (player[player['shots'] <= 2]).any():
-    #     player = player.drop(columns=['goals','assists', 'points', 'plusMinus'])
-        
-    return render_template('player.html', tables=list(player_totals.values.tolist()), titles=player_totals.columns.values, zip=zip)
-
+    return render_template('standings.html', tables=list(standings.values.tolist()), titles=metro_standings.columns.values, metro=list(metro_standings.values.tolist()),
+                           atlantic=list(atlantic_standings.values.tolist()),central=list(central_standings.values.tolist()),pacific=list(pacific_standings.values.tolist()),zip=zip)
 
 
 @app.route('/delete/<int:id>')
