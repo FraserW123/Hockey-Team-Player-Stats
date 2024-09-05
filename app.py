@@ -73,12 +73,25 @@ def roster(id):
     #print(forwards.firstName.default)
     # forwards = forwards[['id','sweaterNumber', 'firstName.default', 'lastName.default', 'positionCode' ,'shootsCatches','heightInInches', 'weightInPounds', 'birthDate', 'birthCountry']]
     # forwards = forwards.rename(columns={"firstName.default":"firstName","lastName.default":"lastName","positionCode":"position","shootsCatches":"shoots","heightInInches":"height","weightInPounds":"weight","birthDate":"DOB","birthCountry":"Country"})
-    
+    attributes = ['id','sweaterNumber', 'firstName.default', 'lastName.default', 'positionCode' ,'shootsCatches',
+     'heightInInches', 'weightInPounds', 'birthDate', 'birthCountry']
+
+    forwards = forwards[attributes]
+    defensemen = defensemen[attributes]
+    goalies = goalies[attributes]
+    renaming={"sweaterNumber":"Jersey #","firstName.default":"First Name","lastName.default":"Last Name","positionCode":"Position","shootsCatches":"Shoots",
+              "heightInInches":"Height","weightInPounds":"Weight","birthDate":"DOB","birthCountry":"Country"}
+    forwards = forwards.rename(columns=renaming)
+    defensemen = defensemen.rename(columns=renaming)
+    goalies = goalies.rename(columns=renaming)
+
     players = players[['id','sweaterNumber', 'firstName.default', 'lastName.default', 'positionCode' ,'shootsCatches','heightInInches', 'weightInPounds', 'birthDate', 'birthCountry']]
     players = players.rename(columns={"firstName.default":"first name","lastName.default":"last name","positionCode":"position","shootsCatches":"shoots","heightInInches":"height (in)","weightInPounds":"weight (lbs)","birthDate":"DOB","birthCountry":"country", "sweaterNumber":"jersey #"})
-
-    
-    return render_template('roster.html', tables=list(players.values.tolist()), titles=players.columns.values, zip=zip)
+    print(forwards)
+    print(defensemen)
+    print(goalies)
+    return render_template('roster.html', forwards=list(forwards.values.tolist()), defensemen=list(defensemen.values.tolist()), 
+                           goalies=list(goalies.values.tolist()), titles=forwards.columns.values, teamname = team.name,zip=zip)
     #return render_template('roster.html', forwards=forwards, defensemen=defensemen, goalies=goalies, team=team)
 
 @app.route('/schedule/<int:id>', methods=['GET'])
@@ -90,7 +103,7 @@ def schedule(id):
 
     schedule = schedule[['homeTeam.abbrev','awayTeam.abbrev','gameDate','venueUTCOffset', 'venue.default']]
     schedule = schedule.rename(columns={"homeTeam.abbrev":"home","awayTeam.abbrev":"away","venue.default":"venue", 'gameDate':'date', 'venueUTCOffset':'time (PST)'})
-    return render_template('schedule.html', tables=list(schedule.values.tolist()), titles=schedule.columns.values, zip=zip)
+    return render_template('schedule.html', tables=list(schedule.values.tolist()), titles=schedule.columns.values, teamname = team.name, zip=zip)
 
 @app.route('/player/<int:id>', methods=['GET'])
 def player(id):
@@ -107,9 +120,9 @@ def player(id):
     player_image = player_json['headshot']
     player_name = player_json['firstName']['default'] + " " + player_json['lastName']['default']
     player_number = player_json['sweaterNumber']
-    print(player_about)
+    # print(player_about)
 
-    print(player_json.keys())
+    # print(player_json.keys())
 
 
     # ['assists' 'gameTypeId' 'gamesPlayed' 'goals' 'leagueAbbrev' 'pim'
@@ -125,12 +138,12 @@ def player(id):
 
     player_totals = player_totals.fillna(0)
     if player_about == 'G':
-        print("less than 2")
+        #print("less than 2")
         player_totals = player_totals[['leagueAbbrev','teamName.default','season', 'gamesPlayed', "goalsAgainstAvg", 'wins', 'losses', 'shutouts']]
         player_totals['goalsAgainstAvg'] = player_totals['goalsAgainstAvg'].round(2)
         
     else:
-        print(player_totals['goals'].max())
+        #print(player_totals['goals'].max())
         player_totals = player_totals[['leagueAbbrev','teamName.default','season', 'gamesPlayed','goals', 'assists', 'points', 'plusMinus']]
     player_totals = player_totals.rename(columns={"leagueAbbrev":"league","teamName.default":"team","season":"season","gamesPlayed":"games","plusMinus":"+/-"})
 
@@ -187,6 +200,28 @@ def standings():
     return render_template('standings.html', tables=list(standings.values.tolist()), titles=metro_standings.columns.values, metro=list(metro_standings.values.tolist()),
                            atlantic=list(atlantic_standings.values.tolist()),central=list(central_standings.values.tolist()),pacific=list(pacific_standings.values.tolist()),zip=zip)
 
+@app.route('/stats-leaders', methods=['GET'])
+def statLeaders():
+    cat = ""
+    limit = 5
+    
+    
+    categories = ['goalsSh' ,'plusMinus' ,'assists', 'goalsPp' ,'faceoffLeaders' ,'penaltyMins','goals' ,'points', 'toi']
+    stat_categories = []
+
+
+
+    for cat in categories:
+        stats_link = "https://api-web.nhle.com/v1/skater-stats-leaders/current?categories="+ cat+"&limit="+ str(limit)
+        stats = pd.json_normalize(requests.get(stats_link).json()[cat])
+        print(stats.keys().values)
+        stats = stats[['firstName.default','lastName.default','sweaterNumber','teamAbbrev', 'position', 'value']]
+        stats = stats.rename(columns={"firstName.default":"first name","lastName.default":"last name","sweaterNumber":"jersey #","teamAbbrev":"team","value":cat})
+        stat_categories.append(stats)
+    
+    categories = ['Shorthanded Goals','Plus/Minus','Assists', 'Power Play Goals','Faceoff Leaders','Penalty Minutes','Goals','Points','Time on Ice']
+
+    return render_template('stats-leaders.html', tables=stat_categories, categories=categories)
 
 @app.route('/delete/<int:id>')
 def delete(id):

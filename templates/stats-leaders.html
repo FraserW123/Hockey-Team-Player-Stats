@@ -1,0 +1,33 @@
+{% extends 'base.html'%}
+{% block head %}
+
+<title>Schedule</title>
+{% endblock %}
+{% block body %}
+<div class = 'content'>
+    <h1 style = "text-align: center;">Stat Leaders</h1>
+    {% for df in tables %}
+    <h3>{{ categories[loop.index0] }}</h3>
+    <table border="1">
+        <thead>
+            <tr>
+                {% for column in df.columns %}
+                    <th>{{ column }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in df.iterrows() %}
+            <tr>
+                {% for cell in row[1] %}
+                    <td>{{ cell }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    {% endfor %}
+    <a HREF="javascript:javascript:history.go(-1)">Back</a>
+</div>
+{% endblock %}

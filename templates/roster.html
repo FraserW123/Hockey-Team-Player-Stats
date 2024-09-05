@@ -5,7 +5,9 @@
 {% endblock %}
 {% block body %}
 <div class = 'content'>
-    <h1 style = "text-align: center;">Roster</h1>
+    <h1 style = "text-align: center;">{{teamname}} Roster</h1>
+    <br>
+    <h3>Forwards</h3>
     <table style="margin: 0px auto;">
         <tr>
             {% for title in titles %}
@@ -13,7 +15,7 @@
             {% endfor %}
             <th>Stats</th>
         </tr>
-        {% for row in tables %}
+        {% for row in forwards %}
           <tr>
             {% for col, row_ in zip(titles, row) %}
             <td>{{row_}}</td>
@@ -25,7 +27,48 @@
           </tr>
           {% endfor %}
     </table>
-
+    <br>
+    <h3>Defensemen</h3>
+    <table style="margin: 0px auto;">
+        <tr>
+            {% for title in titles %}
+                <th>{{title}}</th>
+            {% endfor %}
+            <th>Stats</th>
+        </tr>
+        {% for row in defensemen %}
+          <tr>
+            {% for col, row_ in zip(titles, row) %}
+            <td>{{row_}}</td>
+            
+            {% endfor %}
+            <td>
+                <a href="/player/{{row[0]}}">stats</a>
+            </td>
+          </tr>
+          {% endfor %}
+    </table>
+    <br>
+    <h3>Goalies</h3>
+    <table style="margin: 0px auto;">
+        <tr>
+            {% for title in titles %}
+                <th>{{title}}</th>
+            {% endfor %}
+            <th>Stats</th>
+        </tr>
+        {% for row in goalies %}
+          <tr>
+            {% for col, row_ in zip(titles, row) %}
+            <td>{{row_}}</td>
+            
+            {% endfor %}
+            <td>
+                <a href="/player/{{row[0]}}">stats</a>
+            </td>
+          </tr>
+          {% endfor %}
+    </table>
     <br>
     <a HREF="javascript:javascript:history.go(-1)">Back</a>
 </div>
