@@ -3,11 +3,11 @@ Welcome to the Hockey Stats Page. Here's how to compile and run the web server
 <a name="installation"></a>
 ## 1. Installation
 
-Download the project and install the following library
+Download the project, unzip the project, access the folder in a terminal and install the following library
 ```bash
 pip install virtualenv
 ```
-Create the virtual environment
+Create a virtual environment
 ```bash
 python -m venv env
 ```
@@ -15,9 +15,15 @@ Activate the environment (Windows CMD)
 ```bash
 env\Scripts\activate.bat
 ```
+
+Windows Powershell
+```bash
+env\Scripts\Activate.ps1
+```
+
 Unix
 ```bash
-. env/bin/activate
+env/bin/activate
 ```
 Install required libraries
 ```bash
